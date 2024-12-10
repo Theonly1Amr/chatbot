@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Chatbot</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f0f8ff;
+        }
+        #cartoon {
+            width: 100px;
+            height: 100px;
+            background-image: url('cartoon.png'); /* Replace with a cartoon image */
+            background-size: cover;
+            position: relative;
+            animation: float 2s infinite;
+            cursor: pointer;
+        }
+        @keyframes float {
+            0% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0); }
+        }
+        #chatbox {
+            display: none;
+            position: absolute;
+            bottom: 120px;
+            width: 300px;
+            height: 400px;
+            background-color: #fff;
+            border: 2px solid #ccc;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+            z-index: 10;
+        }
+        #messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px;
+            height: 80%;
+            background-color: #f9f9f9;
+        }
+        #input-container {
+            display: flex;
+            padding: 10px;
+            background-color: #eee;
+            border-top: 1px solid #ccc;
+        }
+        #input-container input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        #input-container button {
+            margin-left: 10px;
+            padding: 10px 20px;
+            border: none;
+            background-color: #007bff;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div id="cartoon"></div>
+    <div id="chatbox">
+        <div id="messages"></div>
+        <div id="input-container">
+            <input id="userInput" type="text" placeholder="Type your message...">
+            <button onclick="sendMessage()">Send</button>
+        </div>
+    </div>
+
+    <script>
+        const cartoon = document.getElementById('cartoon');
+        const chatbox = document.getElementById('chatbox');
+        const messages = document.getElementById('messages');
+
+        // Show or hide chatbox when cartoon is clicked
+        cartoon.addEventListener('click', () => {
+            chatbox.style.display = chatbox.style.display === 'none' ? 'block' : 'none';
+        });
+
+        // Fetch ChatGPT API response
+        async function sendMessage() {
+            const input = document.getElementById('userInput');
+            const userMessage = input.value;
+            if (!userMessage) return;
+
+            // Display user message
+            const userDiv = document.createElement('div');
+            userDiv.textContent = userMessage;
+            userDiv.style.textAlign = 'right';
+            messages.appendChild(userDiv);
+
+            // Clear input
+            input.value = '';
+
+            // Fetch response from ChatGPT API
+            try {
+                const response = await fetch('https://api.openai.com/v1/chat/completions', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer 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`
+                    },
+                    body: JSON.stringify({
+                        model: "gpt-3.5-turbo",
+                        messages: [{ role: "user", content: userMessage }]
+                    })
+                });
+
+                const data = await response.json();
+                const botMessage = data.choices[0].message.content;
+
+                // Display chatbot response
+                const botDiv = document.createElement('div');
+                botDiv.textContent = botMessage;
+                messages.appendChild(botDiv);
+                messages.scrollTop = messages.scrollHeight; // Auto-scroll
+            } catch (error) {
+                console.error('Error:', error);
+                const botDiv = document.createElement('div');
+                botDiv.textContent = "Oops! Something went wrong.";
+                messages.appendChild(botDiv);
+            }
+        }
+    </script>
+</body>
+</html>
